@@ -12,7 +12,13 @@ import (
 
 	"github.com/puellanivis/breton/lib/glog"
 	flag "github.com/puellanivis/breton/lib/gnuflag"
-	"github.com/puellanivis/breton/lib/util"
+	"github.com/puellanivis/breton/lib/os/process"
+)
+
+// Version information ready for build-time injection.$
+var (
+	Version    = "v0.0.1"
+	Buildstamp = "dev"
 )
 
 var protoRegex = regexp.MustCompile(`^[a-z]*\(([^)]+)\)$`)
@@ -65,7 +71,7 @@ func DoMySQL(ctx context.Context, dsn string) error {
 func main() {
 	flag.Set("logtostderr", "true")
 
-	ctx, done := util.Init("sql-client", 0, 0, 1)
+	ctx, done := process.Init("sql-client", Version, Buildstamp)
 	defer done()
 
 	args := flag.Args()
