@@ -15,7 +15,7 @@ import (
 	"github.com/puellanivis/breton/lib/os/process"
 )
 
-// Version information ready for build-time injection.$
+// Version information ready for build-time injection.
 var (
 	Version    = "v0.0.1"
 	Buildstamp = "dev"
