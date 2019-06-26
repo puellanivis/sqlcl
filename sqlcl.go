@@ -68,6 +68,24 @@ func DoMySQL(ctx context.Context, dsn string) error {
 	return syscall.Exec(cmdline[0], cmdline, os.Environ())
 }
 
+func DoPostgreSQL(ctx context.Context, dsn string) error {
+	fmt.Printf("dsn: %q\n", dsn)
+
+	bin, err := exec.LookPath("psql")
+	if err != nil {
+		return err
+	}
+
+	cmdline := []string{
+		bin,
+		dsn,
+	}
+
+	fmt.Printf("exec %q\n", cmdline)
+
+	return syscall.Exec(cmdline[0], cmdline, os.Environ())
+}
+
 func main() {
 	flag.Set("logtostderr", "true")
 
@@ -84,6 +102,11 @@ func main() {
 	switch {
 	case strings.HasPrefix(dsn, "mysql:"):
 		if err := DoMySQL(ctx, dsn); err != nil {
+			glog.Fatal(err)
+		}
+
+	case strings.HasPrefix(dsn, "postgres:"):
+		if err := DoPostgreSQL(ctx, dsn); err != nil {
 			glog.Fatal(err)
 		}
 
