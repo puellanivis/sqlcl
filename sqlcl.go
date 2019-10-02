@@ -21,7 +21,10 @@ var (
 	Buildstamp = "dev"
 )
 
-var protoRegex = regexp.MustCompile(`^[a-z]*\(([^)]+)\)$`)
+var (
+	tcpRegex  = regexp.MustCompile(`tcp\(([^)]+)\)`)
+	unixRegex = regexp.MustCompile(`unix\(([^)]+)\)`)
+)
 
 func DoMySQL(ctx context.Context, dsn string) error {
 	fmt.Printf("dsn: %q\n", dsn)
@@ -40,15 +43,41 @@ func DoMySQL(ctx context.Context, dsn string) error {
 		return fmt.Errorf("no user information specified: %#v", uri)
 	}
 
-	if matches := protoRegex.FindStringSubmatch(uri.Host); len(matches) > 1 {
-		uri.Host = matches[1]
-	}
-
 	cmdline := []string{
 		bin,
 		fmt.Sprintf("--host=%s", uri.Hostname()),
 	}
 
+	return doMySQL(ctx, uri, cmdline)
+}
+
+func DoMySQLSocket(ctx context.Context, sock, dsn string) error {
+	fmt.Printf("unix_socket: %q\n", sock)
+	fmt.Printf("dsn: %q\n", dsn)
+
+	bin, err := exec.LookPath("mysql")
+	if err != nil {
+		return err
+	}
+
+	uri, err := url.Parse(dsn)
+	if err != nil {
+		return err
+	}
+
+	if uri.User == nil {
+		return fmt.Errorf("no user information specified: %#v", uri)
+	}
+
+	cmdline := []string{
+		bin,
+		fmt.Sprintf("--socket=%s", sock),
+	}
+
+	return doMySQL(ctx, uri, cmdline)
+}
+
+func doMySQL(ctx context.Context, uri *url.URL, cmdline []string) error {
 	if port := uri.Port(); port != "" {
 		cmdline = append(cmdline, fmt.Sprintf("--port=%s", port))
 	}
@@ -111,6 +140,25 @@ func main() {
 		}
 
 	default:
+		if matches := tcpRegex.FindStringSubmatch(dsn); len(matches) > 1 {
+			dsn := tcpRegex.ReplaceAllString(dsn, matches[1])
+
+			if err := DoMySQL(ctx, "mysql://"+dsn); err != nil {
+				glog.Fatal(err)
+			}
+
+			return
+		}
+
+		if matches := unixRegex.FindStringSubmatch(dsn); len(matches) > 1 {
+			sock := matches[1]
+			dsn := unixRegex.ReplaceAllString(dsn, "")
+
+			if err := DoMySQLSocket(ctx, sock, "mysql://"+dsn); err != nil {
+				glog.Fatal(err)
+			}
+		}
+
 		if err := DoMySQL(ctx, "mysql://"+dsn); err != nil {
 			glog.Fatal(err)
 		}
