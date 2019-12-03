@@ -27,7 +27,7 @@ var (
 )
 
 func DoMySQL(ctx context.Context, dsn string) error {
-	fmt.Printf("dsn: %q\n", dsn)
+	glog.V(5).Infof("dsn: %q", dsn)
 
 	bin, err := exec.LookPath("mysql")
 	if err != nil {
@@ -52,8 +52,8 @@ func DoMySQL(ctx context.Context, dsn string) error {
 }
 
 func DoMySQLSocket(ctx context.Context, sock, dsn string) error {
-	fmt.Printf("unix_socket: %q\n", sock)
-	fmt.Printf("dsn: %q\n", dsn)
+	glog.V(5).Infof("unix_socket: %q", sock)
+	glog.V(5).Infof("dsn: %q", dsn)
 
 	bin, err := exec.LookPath("mysql")
 	if err != nil {
@@ -92,13 +92,13 @@ func doMySQL(ctx context.Context, uri *url.URL, cmdline []string) error {
 
 	cmdline = append(cmdline, strings.TrimPrefix(uri.Path, "/"))
 
-	fmt.Printf("exec %q\n", cmdline)
+	glog.V(10).Infof("exec %q", cmdline)
 
 	return syscall.Exec(cmdline[0], cmdline, os.Environ())
 }
 
 func DoPostgreSQL(ctx context.Context, dsn string) error {
-	fmt.Printf("dsn: %q\n", dsn)
+	glog.V(5).Infof("dsn: %q", dsn)
 
 	bin, err := exec.LookPath("psql")
 	if err != nil {
@@ -110,7 +110,7 @@ func DoPostgreSQL(ctx context.Context, dsn string) error {
 		dsn,
 	}
 
-	fmt.Printf("exec %q\n", cmdline)
+	glog.V(10).Infof("exec %q", cmdline)
 
 	return syscall.Exec(cmdline[0], cmdline, os.Environ())
 }
