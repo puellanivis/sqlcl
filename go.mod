@@ -1,5 +1,5 @@
 module github.com/puellanivis/sqlcl
 
-go 1.14
+go 1.21
 
-require github.com/puellanivis/breton v0.2.12
+require github.com/puellanivis/breton v0.2.16
